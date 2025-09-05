@@ -23,6 +23,17 @@ const getUserApi = () => {
     return axios.get(URL_API);
 };
 
-export {
-    createUserApi, loginApi, getUserApi
+const fetchProducts = async (category, page, limit) => {
+    const URL_API = '/v1/api/products';
+    try {
+        const response = await axios.get(URL_API, {
+            params: { category, page, limit },
+        });
+        return response;
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        return { EC: 1, data: null };
+    }
 };
+
+export { createUserApi, loginApi, getUserApi, fetchProducts };

@@ -1,13 +1,11 @@
-import { CrownOutlined } from '@ant-design/icons';
-import { Result } from 'antd';
+import React from 'react';
+import ProductList from '../components/ProductList';
 
 const HomePage = () => {
     return (
         <div style={{ padding: 20 }}>
-            <Result
-                icon={<CrownOutlined />}
-                title="JSON Web Token (React/Node.JS) - iotstar.vn"
-            />
+            <h1>Product List</h1>
+            <ProductList />
         </div>
     );
 };

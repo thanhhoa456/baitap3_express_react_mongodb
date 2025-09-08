@@ -1,40 +1,68 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Spin } from 'antd';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Spin, Alert } from 'antd';
 import { fetchProducts } from '../util/api';
 import ProductCard from './ProductCard';
-import CategoryFilter from './CategoryFilter';
+import SearchFilter from './SearchFilter';
 
 const ProductList = () => {
     const [products, setProducts] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [category, setCategory] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filters, setFilters] = useState({});
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const loaderRef = useRef(null);
+    const currentSearchRef = useRef('');
+    const currentFiltersRef = useRef({});
 
-    const limit = 10; // Số sản phẩm mỗi trang
+    const limit = 10;
 
-    const loadProducts = async (cat = category, pg = 1, append = false) => {
+    const loadProducts = useCallback(async (q = searchQuery, f = filters, pg = 1, append = false) => {
         setLoading(true);
-        const response = await fetchProducts(cat, pg, limit);
-        if (response.EC === 0) {
-            const { products: newProducts, totalPages } = response.data;
-            setProducts((prev) => (append ? [...prev, ...newProducts] : newProducts));
-            setTotalPages(totalPages);
+        setError(null);
+        try {
+            const response = await fetchProducts(q, f, pg, limit);
+            if (response.EC === 0) {
+                const { products: newProducts, totalPages: total } = response.data;
+                setProducts((prev) => {
+                    // Check if this request is for the current search and filters
+                    if (q !== currentSearchRef.current || JSON.stringify(f) !== JSON.stringify(currentFiltersRef.current)) {
+                        return prev; // Ignore outdated request
+                    }
+                    if (!append) return newProducts;
+                    // Loại bỏ trùng lặp dựa trên id
+                    const existingIds = new Set(prev.map((p) => p.id));
+                    const uniqueNewProducts = newProducts.filter((p) => !existingIds.has(p.id));
+                    return [...prev, ...uniqueNewProducts];
+                });
+                setTotalPages(total);
+            } else {
+                setError(response.message || 'Failed to load products from API');
+                console.error('Error loading products:', response);
+            }
+        } catch (error) {
+            setError(error.message || 'Unknown error occurred while fetching products');
+            console.error('Error in loadProducts:', error);
         }
         setLoading(false);
-    };
+    }, [searchQuery, filters, limit]);
 
     useEffect(() => {
-        loadProducts(category, 1, false); // Tải lại sản phẩm khi danh mục thay đổi
-    }, [category]);
+        currentSearchRef.current = searchQuery;
+        currentFiltersRef.current = filters;
+        loadProducts(searchQuery, filters, 1, false);
+        setPage(1);
+        setProducts([]);
+    }, [searchQuery, filters, loadProducts]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && page < totalPages && !loading) {
-                    setPage((prev) => prev + 1);
-                    loadProducts(category, page + 1, true); // Tải thêm sản phẩm
+                    const nextPage = page + 1;
+                    setPage(nextPage);
+                    loadProducts(searchQuery, filters, nextPage, true);
                 }
             },
             { threshold: 1.0 }
@@ -49,23 +77,28 @@ const ProductList = () => {
                 observer.unobserve(loaderRef.current);
             }
         };
-    }, [page, totalPages, loading, category]);
+    }, [page, totalPages, loading, searchQuery, filters, loadProducts]);
 
-    const handleCategoryChange = (newCategory) => {
-        setCategory(newCategory);
-        setPage(1); // Reset về trang 1 khi thay đổi danh mục
+    const handleSearchChange = (q) => {
+        setSearchQuery(q);
+    };
+
+    const handleFiltersChange = (newFilters) => {
+        setFilters(newFilters);
     };
 
     return (
         <div style={{ padding: '20px' }}>
-            <CategoryFilter onCategoryChange={handleCategoryChange} />
+            <SearchFilter onSearchChange={handleSearchChange} onFiltersChange={handleFiltersChange} />
+            {error && <Alert message="Error" description={error} type="error" showIcon style={{ marginBottom: '20px' }} />}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
                 {products.map((product) => (
-                    <ProductCard key={product._id} product={product} />
+                    <ProductCard key={product.id || product._id} product={product} />
                 ))}
             </div>
             {loading && <Spin style={{ display: 'block', margin: '20px auto' }} />}
             {page < totalPages && <div ref={loaderRef} style={{ height: '20px' }} />}
+            {products.length === 0 && !loading && !error && <p>Không tìm thấy sản phẩm.</p>}
         </div>
     );
 };

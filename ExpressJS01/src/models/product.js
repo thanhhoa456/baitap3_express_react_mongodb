@@ -6,6 +6,8 @@ const productSchema = new mongoose.Schema({
     category: { type: String, required: true },
     description: { type: String },
     image: { type: String },
+    discount: { type: Number, default: 0 }, // Phần trăm khuyến mãi (0-100)
+    views: { type: Number, default: 0 }, // Lượt xem
 }, { timestamps: true });
 
 const Product = mongoose.model('Product', productSchema);

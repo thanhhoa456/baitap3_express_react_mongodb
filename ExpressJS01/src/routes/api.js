@@ -6,7 +6,7 @@ const delay = require('../middleware/delay');
 
 const routerAPI = express.Router();
 
-routerAPI.all("*", auth);
+routerAPI.use(auth);
 
 routerAPI.get("/", (req, res) => {
     return res.status(200).json("Hello world api");
@@ -17,6 +17,6 @@ routerAPI.post("/login", handleLogin);
 
 routerAPI.get("/user", getUser);
 routerAPI.get("/account", delay, getAccount);
-routerAPI.get("/products", getProducts); // Thêm route cho sản phẩm
+routerAPI.get("/products", getProducts);
 
 module.exports = routerAPI;

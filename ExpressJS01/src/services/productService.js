@@ -1,23 +1,14 @@
-const Product = require('../models/product');
+const { searchProducts } = require('../services/elasticsearchService');
 
-const getProductsByCategory = async (category, page = 1, limit = 10) => {
+const getProductsByCategory = async (query, category, minPrice, maxPrice, hasDiscount, sortBy = 'views', sortOrder = 'desc', page = 1, limit = 10) => {
     try {
-        const query = category ? { category } : {};
-        const skip = (page - 1) * limit;
-
-        const products = await Product.find(query)
-            .skip(skip)
-            .limit(limit)
-            .lean();
-
-        const totalProducts = await Product.countDocuments(query);
-
-        return {
-            products,
-            totalPages: Math.ceil(totalProducts / limit),
-            currentPage: page,
-            totalProducts,
+        const filters = {
+            category: category || undefined,
+            minPrice: minPrice || undefined,
+            maxPrice: maxPrice || undefined,
+            hasDiscount: hasDiscount || undefined,
         };
+        return await searchProducts(query, filters, page, limit, sortBy, sortOrder);
     } catch (error) {
         throw new Error('Error fetching products: ' + error.message);
     }

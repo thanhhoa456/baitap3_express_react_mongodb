@@ -11,48 +11,60 @@ const Header = () => {
 
     const items = [
         {
-            label: <Link to={"/"}>Home Page</Link>,
+            label: <Link to="/">Home Page</Link>,
             key: 'home',
             icon: <HomeOutlined />,
         },
-        ...(auth.isAuthenticated ? [
-            {
-                label: <Link to={"/user"}>User</Link>,
-                key: 'user',
-                icon: <UsergroupAddOutlined />,
-            }
-        ] : []),
+        ...(auth.isAuthenticated
+            ? [
+                {
+                    label: <Link to="/user">User</Link>,
+                    key: 'user',
+                    icon: <UsergroupAddOutlined />,
+                },
+            ]
+            : []),
         {
-            label: `Welcome ${auth?.user?.email ?? ""}`,
+            label: `Welcome ${auth.isAuthenticated ? auth.user.email : 'Guest'}`,
             key: 'submenu',
             icon: <SettingOutlined />,
             children: [
-                ...(auth.isAuthenticated ? [
-                    {
-                        label: <span onClick={() => {
-                            localStorage.clear("access_token");
-                            setAuth({
-                                isAuthenticated: false,
-                                user: {
-                                    email: "",
-                                    name: ""
-                                }
-                            });
-                            navigate("/");
-                        }}>Đăng xuất</span>,
-                        key: 'logout',
-                    }
-                ] : [
-                    {
-                        label: <Link to={"/login"}>Đăng nhập</Link>,
-                        key: 'login',
-                    }
-                ]),
+                ...(auth.isAuthenticated
+                    ? [
+                        {
+                            label: (
+                                <span
+                                    onClick={() => {
+                                        localStorage.removeItem('access_token');
+                                        setAuth({
+                                            isAuthenticated: false,
+                                            user: { email: '', name: '' },
+                                        });
+                                        navigate('/');
+                                    }}
+                                >
+                                    Đăng xuất
+                                </span>
+                            ),
+                            key: 'logout',
+                        },
+                    ]
+                    : [
+                        {
+                            label: <Link to="/login">Đăng nhập</Link>,
+                            key: 'login',
+                        },
+                        {
+                            label: <Link to="/register">Đăng ký</Link>,
+                            key: 'register',
+                        },
+                    ]),
             ],
-        }
+        },
     ];
 
-    const [current, setCurrent] = useState('mail');
+    const [current, setCurrent] = useState('home');
+
     const onClick = (e) => {
         console.log('click ', e);
         setCurrent(e.key);

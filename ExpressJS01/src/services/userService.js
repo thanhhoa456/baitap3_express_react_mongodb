@@ -71,9 +71,9 @@ const loginService = async (email, password) => {
     }
 }
 
-const getUserService = async () => {
+const getUserService = async (userId) => {
     try {
-        let result = await User.find({}).select("-password");
+        let result = await User.findById(userId).select("-password").populate('favorites');
         return result;
     } catch (error) {
         console.log(error);

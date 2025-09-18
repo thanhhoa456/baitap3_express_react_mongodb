@@ -13,8 +13,15 @@ const handleLogin = async (req, res) => {
 }
 
 const getUser = async (req, res) => {
-    const data = await getUserService();
-    return res.status(200).json(data);
+    try {
+        const user = await getUserService(req.user.id);
+        if (!user) {
+            return res.status(404).json({ EC: 1, message: 'User not found' });
+        }
+        return res.status(200).json({ EC: 0, data: user });
+    } catch (error) {
+        return res.status(500).json({ EC: 1, message: error.message });
+    }
 }
 
 const getAccount = async (req, res) => {

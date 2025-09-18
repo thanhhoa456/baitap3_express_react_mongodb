@@ -2,41 +2,52 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './styles/global.css';
-
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
-
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import RegisterPage from './pages/register.jsx';
 import UserPage from './pages/user.jsx';
 import HomePage from './pages/home.jsx';
 import LoginPage from './pages/login.jsx';
+import ProductDetail from './components/ProductDetail.jsx';
 import { AuthWrapper } from './components/context/auth.context.jsx';
+import Header from './components/layout/header.jsx';
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <App />,
     children: [
       {
         index: true,
-        element: <HomePage />
+        element: <HomePage />,
       },
       {
-        path: "user",
-        element: <UserPage />
+        path: 'user',
+        element: <UserPage />,
       },
-    ]
+      {
+        path: 'product/:productId',
+        element: <ProductDetail />,
+      },
+    ],
   },
   {
-    path: "register",
-    element: <RegisterPage />
+    path: 'register',
+    element: (
+      <>
+        <Header />
+        <RegisterPage />
+      </>
+    ),
   },
   {
-    path: "login",
-    element: <LoginPage />
-  }
+    path: 'login',
+    element: (
+      <>
+        <Header />
+        <LoginPage />
+      </>
+    ),
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(

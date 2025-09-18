@@ -27,14 +27,57 @@ const createIndex = async () => {
             await client.indices.delete({ index: INDEX_NAME });
             console.log('Existing index products deleted');
         }
+
+        // Tạo custom analyzer cho fuzzy search
         await client.indices.create({
             index: INDEX_NAME,
             body: {
+                settings: {
+                    index: {
+                        max_ngram_diff: 10
+                    },
+                    analysis: {
+                        analyzer: {
+                            fuzzy_analyzer: {
+                                type: 'custom',
+                                tokenizer: 'standard',
+                                filter: ['lowercase', 'asciifolding', 'ngram_filter']
+                            }
+                        },
+                        filter: {
+                            ngram_filter: {
+                                type: 'ngram',
+                                min_gram: 2,
+                                max_gram: 10
+                            }
+                        }
+                    }
+                },
                 mappings: {
                     properties: {
-                        name: { type: 'text', analyzer: 'standard' },
-                        description: { type: 'text', analyzer: 'standard' },
-                        category: { type: 'keyword' },
+                        name: {
+                            type: 'text',
+                            analyzer: 'fuzzy_analyzer',
+                            search_analyzer: 'standard',
+                            fields: {
+                                keyword: { type: 'keyword' }
+                            }
+                        },
+                        description: {
+                            type: 'text',
+                            analyzer: 'fuzzy_analyzer',
+                            search_analyzer: 'standard'
+                        },
+                        category: {
+                            type: 'keyword',
+                            fields: {
+                                text: {
+                                    type: 'text',
+                                    analyzer: 'fuzzy_analyzer',
+                                    search_analyzer: 'standard'
+                                }
+                            }
+                        },
                         price: { type: 'float' },
                         discount: { type: 'float' },
                         views: { type: 'integer' },
@@ -43,7 +86,7 @@ const createIndex = async () => {
                 },
             },
         });
-        console.log('Index products created successfully');
+        console.log('Index products created successfully with enhanced fuzzy search support');
     } catch (error) {
         console.error('Error creating index:', error.message);
         throw new Error('Failed to create Elasticsearch index: ' + error.message);
@@ -86,6 +129,20 @@ const syncProductsToES = async () => {
 const searchProducts = async (query, filters = {}, page = 1, limit = 10, sortBy = 'views', sortOrder = 'desc') => {
     try {
         await checkConnection();
+
+        // Ensure index exists before searching
+        const indexExists = await client.indices.exists({ index: INDEX_NAME });
+        if (!indexExists) {
+            console.log('Index does not exist, creating it...');
+            await createIndex();
+            // Try to sync products if index was just created
+            try {
+                await syncProductsToES();
+            } catch (syncError) {
+                console.warn('Could not sync products during search:', syncError.message);
+            }
+        }
+
         const { category, minPrice, maxPrice, hasDiscount } = filters;
         const from = (page - 1) * limit;
 
@@ -102,17 +159,61 @@ const searchProducts = async (query, filters = {}, page = 1, limit = 10, sortBy 
             sort: [{ [sortBy]: { order: sortOrder.toLowerCase() } }],
         };
 
-        // Fuzzy search trên name và description
+        // Enhanced fuzzy search trên name, description và category
         if (query) {
+            const searchQuery = query.trim();
+
+            // 1. Exact phrase match (highest priority)
             searchBody.query.bool.should.push({
                 multi_match: {
-                    query: query.trim(),
-                    fields: ['name^2', 'description'],
-                    type: 'best_fields',
-                    fuzziness: 'AUTO',
-                    prefix_length: 1,
+                    query: searchQuery,
+                    fields: ['name^3', 'description^2', 'category.text^1'],
+                    type: 'phrase',
+                    boost: 10,
                 },
             });
+
+            // 2. Fuzzy match with better configuration
+            searchBody.query.bool.should.push({
+                multi_match: {
+                    query: searchQuery,
+                    fields: ['name^3', 'description^2', 'category.text^1'],
+                    type: 'best_fields',
+                    fuzziness: 'AUTO',
+                    prefix_length: 2,
+                    max_expansions: 50,
+                    boost: 5,
+                },
+            });
+
+            // 3. Wildcard search for partial matches
+            searchBody.query.bool.should.push({
+                wildcard: {
+                    name: {
+                        value: `*${searchQuery}*`,
+                        boost: 3,
+                    },
+                },
+            });
+
+            // 4. Fuzzy search on individual terms
+            const terms = searchQuery.split(/\s+/);
+            terms.forEach(term => {
+                if (term.length > 2) {
+                    searchBody.query.bool.should.push({
+                        fuzzy: {
+                            name: {
+                                value: term,
+                                fuzziness: 'AUTO',
+                                prefix_length: 1,
+                                boost: 2,
+                            },
+                        },
+                    });
+                }
+            });
+
+            // Set minimum should match to ensure at least one condition matches
             searchBody.query.bool.minimum_should_match = 1;
         }
 

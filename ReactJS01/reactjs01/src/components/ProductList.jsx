@@ -4,7 +4,7 @@ import { fetchProducts } from '../util/api';
 import ProductCard from './ProductCard';
 import SearchFilter from './SearchFilter';
 
-const ProductList = () => {
+const ProductList = ({ onProductSelect }) => {
     const [products, setProducts] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -55,6 +55,12 @@ const ProductList = () => {
         setPage(1);
         setProducts([]);
     }, [searchQuery, filters, loadProducts]);
+
+    useEffect(() => {
+        if (products.length > 0 && onProductSelect) {
+            onProductSelect(products[0]._id || products[0].id);
+        }
+    }, [products, onProductSelect]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(

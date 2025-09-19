@@ -25,7 +25,7 @@ const Header = () => {
             ]
             : []),
         {
-            label: `Welcome ${auth.isAuthenticated ? auth.user.email : 'Guest'}`,
+            label: `Welcome ${auth.isAuthenticated && auth.user.email ? auth.user.email : ''}`,
             key: 'submenu',
             icon: <SettingOutlined />,
             children: [

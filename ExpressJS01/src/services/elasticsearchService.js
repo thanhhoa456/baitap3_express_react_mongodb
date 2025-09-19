@@ -81,6 +81,8 @@ const createIndex = async () => {
                         price: { type: 'float' },
                         discount: { type: 'float' },
                         views: { type: 'integer' },
+                        buyersCount: { type: 'integer' },
+                        commentsCount: { type: 'integer' },
                         image: { type: 'keyword' },
                     },
                 },
@@ -110,6 +112,8 @@ const syncProductsToES = async () => {
                 price: doc.price,
                 discount: doc.discount,
                 views: doc.views,
+                buyersCount: doc.buyersCount || 0,
+                commentsCount: doc.commentsCount || 0,
                 image: doc.image,
             },
         ]);

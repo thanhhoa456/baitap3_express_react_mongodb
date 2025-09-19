@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Card, Spin, Alert, message } from 'antd';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Card, Spin, Alert, message, Button } from 'antd';
+import { ShoppingOutlined } from '@ant-design/icons';
 import { getProductByIdApi, addViewedApi } from '../util/api';
 import SimilarProducts from './SimilarProducts';
 import CommentSection from './CommentSection';
 
 const ProductDetail = () => {
     const { productId } = useParams();
+    const navigate = useNavigate();
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -61,7 +63,16 @@ const ProductDetail = () => {
                 <p><strong>Khách mua:</strong> {product.buyersCount || 0}</p>
                 <p><strong>Bình luận:</strong> {product.commentsCount || 0}</p>
                 <p><strong>Mô tả:</strong> {product.description || 'Không có mô tả'}</p>
+                <Button
+                    type="primary"
+                    icon={<ShoppingOutlined />}
+                    style={{ margin: '10px 0' }}
+                    onClick={() => navigate(`/payment/${productId}`)}
+                >
+                    Mua ngay
+                </Button>
             </Card>
+
             <SimilarProducts productId={productId} />
             <CommentSection productId={productId} />
         </div>

@@ -8,6 +8,7 @@ import UserPage from './pages/user.jsx';
 import HomePage from './pages/home.jsx';
 import LoginPage from './pages/login.jsx';
 import ProductDetail from './components/ProductDetail.jsx';
+import PaymentPage from './components/PaymentPage.jsx';
 import { AuthWrapper } from './components/context/auth.context.jsx';
 import Header from './components/layout/header.jsx';
 
@@ -27,6 +28,10 @@ const router = createBrowserRouter([
       {
         path: 'product/:productId',
         element: <ProductDetail />,
+      },
+      {
+        path: 'payment/:productId',
+        element: <PaymentPage />,
       },
     ],
   },

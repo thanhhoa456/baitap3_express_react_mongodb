@@ -44,6 +44,7 @@ const fetchProducts = async (searchQuery = '', filters = {}, page = 1, limit = 1
         ...filters, // category, minPrice, maxPrice, hasDiscount, sortBy, sortOrder
         page,
         limit,
+        _t: Date.now(), // Add timestamp to force fresh data
     };
     try {
         const response = await axios.get(URL_API, { params });

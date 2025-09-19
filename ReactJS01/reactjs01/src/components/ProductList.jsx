@@ -1,10 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { Spin, Alert } from 'antd';
 import { fetchProducts } from '../util/api';
 import ProductCard from './ProductCard';
 import SearchFilter from './SearchFilter';
+import { AuthContext } from './context/auth.context';
 
 const ProductList = ({ onProductSelect }) => {
+    const { refreshProducts } = useContext(AuthContext);
     const [products, setProducts] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -46,7 +48,7 @@ const ProductList = ({ onProductSelect }) => {
             console.error('Error in loadProducts:', error);
         }
         setLoading(false);
-    }, [searchQuery, filters, limit]);
+    }, [searchQuery, filters, limit, refreshProducts]);
 
     useEffect(() => {
         currentSearchRef.current = searchQuery;

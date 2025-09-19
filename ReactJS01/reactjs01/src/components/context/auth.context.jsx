@@ -12,6 +12,8 @@ export const AuthContext = createContext({
     setAuth: () => { },
     appLoading: true,
     setAppLoading: () => { },
+    refreshProducts: 0,
+    setRefreshProducts: () => { },
 });
 
 export const AuthWrapper = (props) => {
@@ -23,6 +25,7 @@ export const AuthWrapper = (props) => {
         },
     });
     const [appLoading, setAppLoading] = useState(true);
+    const [refreshProducts, setRefreshProducts] = useState(0);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -61,7 +64,7 @@ export const AuthWrapper = (props) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ auth, setAuth, appLoading, setAppLoading }}>
+        <AuthContext.Provider value={{ auth, setAuth, appLoading, setAppLoading, refreshProducts, setRefreshProducts }}>
             {props.children}
         </AuthContext.Provider>
     );

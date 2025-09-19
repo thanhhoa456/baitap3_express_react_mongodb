@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
     role: String,
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }], // Sản phẩm yêu thích
     viewedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }], // Sản phẩm đã xem
+    purchases: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }], // Sản phẩm đã mua
 });
 
 const User = mongoose.model('user', userSchema);

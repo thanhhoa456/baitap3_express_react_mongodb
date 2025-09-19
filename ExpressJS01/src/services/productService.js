@@ -84,6 +84,14 @@ const incrementBuyersCount = async (productId) => {
     }
 };
 
+const recordPurchase = async (userId, productId) => {
+    try {
+        await User.findByIdAndUpdate(userId, { $addToSet: { purchases: productId } });
+    } catch (error) {
+        throw new Error('Error recording purchase: ' + error.message);
+    }
+};
+
 const incrementCommentsCount = async (productId) => {
     try {
         await Product.findByIdAndUpdate(productId, { $inc: { commentsCount: 1 } });
@@ -101,5 +109,6 @@ module.exports = {
     getViewed,
     getSimilarProducts,
     incrementBuyersCount,
+    recordPurchase,
     incrementCommentsCount,
 };

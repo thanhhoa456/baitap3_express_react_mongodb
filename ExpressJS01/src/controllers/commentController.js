@@ -7,8 +7,12 @@ const addComment = async (req, res) => {
         }
         const { productId, text } = req.body;
         const userId = req.user.id;
-        const comment = await createComment(userId, productId, text);
-        return res.status(201).json({ EC: 0, data: comment });
+        try {
+            const comment = await createComment(userId, productId, text);
+            return res.status(201).json({ EC: 0, data: comment });
+        } catch (error) {
+            return res.status(403).json({ EC: 1, message: error.message });
+        }
     } catch (error) {
         return res.status(500).json({ EC: 1, message: error.message });
     }

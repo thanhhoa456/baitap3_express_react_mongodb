@@ -1,4 +1,4 @@
-const { getProductsByCategory, addToFavorites, removeFromFavorites, getFavorites, addToViewed, getViewed, getSimilarProducts, incrementBuyersCount, incrementCommentsCount } = require('../services/productService');
+const { getProductsByCategory, addToFavorites, removeFromFavorites, getFavorites, addToViewed, getViewed, getSimilarProducts, incrementBuyersCount, recordPurchase, incrementCommentsCount } = require('../services/productService');
 const Product = require('../models/product');
 
 const getProducts = async (req, res) => {
@@ -108,7 +108,9 @@ const getSimilar = async (req, res) => {
 const buyProduct = async (req, res) => {
     try {
         const { productId } = req.body;
+        const userId = req.user.id;
         await incrementBuyersCount(productId);
+        await recordPurchase(userId, productId);
         return res.status(200).json({ EC: 0, message: 'Ghi nhận mua hàng' });
     } catch (error) {
         return res.status(500).json({ EC: 1, message: error.message });

@@ -10,7 +10,24 @@ const instance = axios.create({
 // Add a request interceptor
 instance.interceptors.request.use(function (config) {
     // Do something before request is sent
-    config.headers.Authorization = `Bearer ${localStorage.getItem("access_token")}`;
+    const token = localStorage.getItem("access_token");
+    // List of public API path prefixes that do not require auth token
+    const publicPaths = [
+        '/v1/api/products',
+        '/v1/api/product/',
+        '/v1/api/similar/',
+        '/v1/api/comments/',
+        // '/v1/api/viewed', // viewed requires auth, so remove from public paths
+        // '/v1/api/user', // user info might require auth, so remove from public paths
+        '/v1/api/register',
+        '/v1/api/login'
+    ];
+    // Extract path without query params
+    const urlPath = config.url.split('?')[0];
+    const isPublic = publicPaths.some(path => urlPath.startsWith(path));
+    if (token && !isPublic) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
 }, function (error) {
     // Do something with request error

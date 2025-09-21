@@ -11,14 +11,28 @@ function App() {
   useEffect(() => {
     const fetchAccount = async () => {
       setAppLoading(true);
-      const res = await axios.get("/v1/api/user");
-      if (res && res.message) {
+      try {
+        const res = await axios.get("/v1/api/user");
+        console.log("fetchAccount response:", res);
+        if (res && res.EC === 0 && res.data) {
+          setAuth({
+            isAuthenticated: true,
+            user: {
+              email: res.data.email,
+              name: res.data.name,
+            },
+          });
+        } else {
+          setAuth({
+            isAuthenticated: false,
+            user: { email: "", name: "" },
+          });
+        }
+      } catch (error) {
+        console.error("fetchAccount error:", error);
         setAuth({
-          isAuthenticated: true,
-          user: {
-            email: res.email,
-            name: res.name
-          }
+          isAuthenticated: false,
+          user: { email: "", name: "" },
         });
       }
       setAppLoading(false);

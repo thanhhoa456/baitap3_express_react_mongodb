@@ -7,8 +7,6 @@ const delay = require('../middleware/delay');
 
 const routerAPI = express.Router();
 
-routerAPI.use(auth);
-
 routerAPI.get("/", (req, res) => {
     return res.status(200).json("Hello world api");
 });
@@ -16,10 +14,17 @@ routerAPI.get("/", (req, res) => {
 routerAPI.post("/register", createUser);
 routerAPI.post("/login", handleLogin);
 
-routerAPI.get("/user", getUser);
-routerAPI.get("/account", delay, getAccount);
 routerAPI.get("/products", getProducts);
 routerAPI.get("/product/:productId", getProductById);
+
+routerAPI.get("/similar/:productId", getSimilar);
+routerAPI.get("/comments/:productId", getComments);
+
+
+routerAPI.use(auth);
+
+routerAPI.get("/user", getUser);
+routerAPI.get("/account", delay, getAccount);
 
 // Favorites
 routerAPI.post("/favorites", addFavorite);
@@ -30,12 +35,8 @@ routerAPI.get("/favorites", getUserFavorites);
 routerAPI.post("/viewed", addViewed);
 routerAPI.get("/viewed", getUserViewed);
 
-// Similar
-routerAPI.get("/similar/:productId", getSimilar);
-
 // Comments
 routerAPI.post("/comments", addComment);
-routerAPI.get("/comments/:productId", getComments);
 routerAPI.delete("/comments/:commentId", removeComment);
 
 // Buy

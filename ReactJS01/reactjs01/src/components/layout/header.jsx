@@ -24,43 +24,46 @@ const Header = () => {
                 },
             ]
             : []),
-        {
-            label: `Welcome ${auth.isAuthenticated && auth.user.email ? auth.user.email : ''}`,
-            key: 'submenu',
-            icon: <SettingOutlined />,
-            children: [
-                ...(auth.isAuthenticated
-                    ? [
-                        {
-                            label: (
-                                <span
-                                    onClick={() => {
-                                        localStorage.removeItem('access_token');
-                                        setAuth({
-                                            isAuthenticated: false,
-                                            user: { email: '', name: '' },
-                                        });
-                                        navigate('/');
-                                    }}
-                                >
-                                    Đăng xuất
-                                </span>
-                            ),
-                            key: 'logout',
-                        },
-                    ]
-                    : [
-                        {
-                            label: <Link to="/login">Đăng nhập</Link>,
-                            key: 'login',
-                        },
-                        {
-                            label: <Link to="/register">Đăng ký</Link>,
-                            key: 'register',
-                        },
-                    ]),
-            ],
-        },
+{
+    label: auth.isAuthenticated && auth.user.email ? `Welcome ${auth.user.email}` : 'Welcome',
+    key: 'submenu',
+    icon: <SettingOutlined />,
+    children: [
+        ...(auth.isAuthenticated
+            ? [
+                {
+                    label: (
+<span
+    onClick={() => {
+        localStorage.removeItem('access_token');
+        setAuth({
+            isAuthenticated: false,
+            user: { email: '', name: '' },
+        });
+        // Navigate after state update to ensure re-render
+        setTimeout(() => {
+            navigate('/');
+        }, 0);
+    }}
+>
+    Đăng xuất
+</span>
+                    ),
+                    key: 'logout',
+                },
+            ]
+            : [
+                {
+                    label: <Link to="/login">Đăng nhập</Link>,
+                    key: 'login',
+                },
+                {
+                    label: <Link to="/register">Đăng ký</Link>,
+                    key: 'register',
+                },
+            ]),
+    ],
+},
     ];
 
     const [current, setCurrent] = useState('home');
